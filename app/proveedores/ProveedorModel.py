@@ -1,14 +1,14 @@
-class ProveedorModel:
-    db = []
-    id_counter = 1
+from app.db import db
 
-    def __init__(self, nombre, telefono, direccion, email):
-        self.id = ProveedorModel.id_counter
-        ProveedorModel.id_counter += 1
-        self.nombre = nombre
-        self.telefono = telefono
-        self.direccion = direccion
-        self.email = email
+
+class ProveedorModel(db.Model):
+    __tablename__ = 'PROVEEDORES'
+
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    telefono = db.Column(db.String(20))
+    direccion = db.Column(db.String(100))
+    email = db.Column(db.String(100))
 
     def serializar(self):
         return {
@@ -19,15 +19,6 @@ class ProveedorModel:
             "email": self.email
         }
 
-    @staticmethod
-    def deserializar(data):
-        return ProveedorModel(
-            nombre=data.get("nombre"),
-            telefono=data.get("telefono"),
-            direccion=data.get("direccion"),
-            email=data.get("email")
-        )
-
     def update(self, data):
         self.nombre = data.get("nombre", self.nombre)
         self.telefono = data.get("telefono", self.telefono)
@@ -37,19 +28,18 @@ class ProveedorModel:
 
     @staticmethod
     def get_all():
-        return [p.serializar() for p in ProveedorModel.db]
+        return [p.serializar() for p in ProveedorModel.query.all()]
 
     @staticmethod
     def get_one(id):
-        for p in ProveedorModel.db:
-            if p.id == id:
-                return p.serializar()
-        return None
+        proveedor = ProveedorModel.query.get(id)
+        return proveedor.serializar() if proveedor else None
 
     @staticmethod
     def delete(id):
-        for i, p in enumerate(ProveedorModel.db):
-            if p.id == id:
-                del ProveedorModel.db[i]
-                return True
+        proveedor = ProveedorModel.query.get(id)
+        if proveedor:
+            db.session.delete(proveedor)
+            db.session.commit()
+            return True
         return False

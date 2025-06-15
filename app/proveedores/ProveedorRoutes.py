@@ -1,27 +1,49 @@
 from flask import Blueprint, request, jsonify
-from .ProveedorController import ProveedorController
+from .ProveedorController import (
+    crear_proveedor,
+    obtener_proveedores,
+    obtener_proveedor_por_id,
+    actualizar_proveedor,
+    eliminar_proveedor
+)
 
-proveedores_bp = Blueprint("proveedores_bp", __name__)
+proveedores_bp = Blueprint("proveedores_bp", __name__, url_prefix="/proveedores")
 
-@proveedores_bp.route("/proveedores", methods=["GET"])
-def get_all():
-    return jsonify(ProveedorController.get_all())
+# Crear un proveedor
+@proveedores_bp.route("", methods=["POST"])
+def crear():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Faltan datos"}), 400
+    proveedor = crear_proveedor(data)
+    return jsonify(proveedor), 201
 
-@proveedores_bp.route("/proveedores/<int:id>", methods=["GET"])
-def get_one(id):
-    return jsonify(ProveedorController.get_one(id))
+# Obtener todos los proveedores
+@proveedores_bp.route("", methods=["GET"])
+def listar():
+    proveedores = obtener_proveedores()
+    return jsonify(proveedores), 200
 
-@proveedores_bp.route("/proveedores", methods=["POST"])
-def create():
-    data = request.json
-    return jsonify(ProveedorController.create(data))
+# Obtener proveedor por ID
+@proveedores_bp.route("/<int:proveedor_id>", methods=["GET"])
+def obtener(proveedor_id):
+    proveedor = obtener_proveedor_por_id(proveedor_id)
+    if proveedor:
+        return jsonify(proveedor), 200
+    return jsonify({"error": "Proveedor no encontrado"}), 404
 
-@proveedores_bp.route("/proveedores/<int:id>", methods=["PUT"])
-def update(id):
-    data = request.json
-    data["id"] = id
-    return jsonify(ProveedorController.update(data))
+# Actualizar proveedor
+@proveedores_bp.route("/<int:proveedor_id>", methods=["PUT"])
+def actualizar(proveedor_id):
+    data = request.get_json()
+    proveedor = actualizar_proveedor(proveedor_id, data)
+    if proveedor:
+        return jsonify(proveedor), 200
+    return jsonify({"error": "Proveedor no encontrado"}), 404
 
-@proveedores_bp.route("/proveedores/<int:id>", methods=["DELETE"])
-def delete(id):
-    return jsonify(ProveedorController.delete(id))
+# Eliminar proveedor
+@proveedores_bp.route("/<int:proveedor_id>", methods=["DELETE"])
+def eliminar(proveedor_id):
+    if eliminar_proveedor(proveedor_id):
+        return jsonify({"mensaje": "Proveedor eliminado"}), 200
+    return jsonify({"error": "Proveedor no encontrado"}), 404

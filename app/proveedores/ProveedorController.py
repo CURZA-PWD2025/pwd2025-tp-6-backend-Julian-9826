@@ -1,31 +1,31 @@
+from app.db import db
+
 from .ProveedorModel import ProveedorModel
 
-class ProveedorController:
+def crear_proveedor(data):
+    nuevo = ProveedorModel(
+        nombre=data["nombre"],
+        telefono=data["telefono"],
+        direccion=data["direccion"],
+        email=data["email"]
+    )
+    db.session.add(nuevo)
+    db.session.commit()
+    return nuevo.serializar()
 
-    @staticmethod
-    def get_all():
-        return ProveedorModel.get_all()
+def obtener_proveedores():
+    return ProveedorModel.get_all()
 
-    @staticmethod
-    def get_one(id):
-        return ProveedorModel.get_one(id)
+def obtener_proveedor_por_id(proveedor_id):
+    return ProveedorModel.get_one(proveedor_id)
 
-    @staticmethod
-    def create(data):
-        nuevo = ProveedorModel.deserializar(data)
-        ProveedorModel.db.append(nuevo)
-        return nuevo.serializar()
+def actualizar_proveedor(proveedor_id, data):
+    proveedor = ProveedorModel.query.get(proveedor_id)
+    if proveedor:
+        proveedor.update(data)
+        db.session.commit()
+        return proveedor.serializar()
+    return None
 
-    @staticmethod
-    def update(data):
-        for p in ProveedorModel.db:
-            if p.id == data.get("id"):
-                p.update(data)
-                return p.serializar()
-        return {"error": "Proveedor no encontrado"}
-
-    @staticmethod
-    def delete(id):
-        if ProveedorModel.delete(id):
-            return {"mensaje": "Proveedor eliminado"}
-        return {"error": "Proveedor no encontrado"}
+def eliminar_proveedor(proveedor_id):
+    return ProveedorModel.delete(proveedor_id)
